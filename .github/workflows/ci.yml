@@ -27,9 +27,22 @@ jobs:
         run: pytest tests/ -v
 
   build-cli:
-    name: Validate CLI Build
-    runs-on: ubuntu-latest
+    name: Build CLI (${{ matrix.os }})
     needs: test
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: sreebase-cli-linux
+            binary_path: dist/sreebase-cli
+          - os: windows-latest
+            artifact_name: sreebase-cli-windows
+            binary_path: dist/sreebase-cli.exe
+          - os: macos-latest
+            artifact_name: sreebase-cli-macos
+            binary_path: dist/sreebase-cli
 
     steps:
       - name: Checkout repository
@@ -46,11 +59,16 @@ jobs:
       - name: Build CLI binary
         run: pyinstaller --onefile --name sreebase-cli sreebase/client/cli.py
 
-      - name: Verify binary exists
-        run: ls -lh dist/sreebase-cli
+      - name: Verify binary exists (Unix)
+        if: runner.os != 'Windows'
+        run: ls -lh ${{ matrix.binary_path }}
+
+      - name: Verify binary exists (Windows)
+        if: runner.os == 'Windows'
+        run: dir ${{ matrix.binary_path }}
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sreebase-cli-linux
-          path: dist/sreebase-cli
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.binary_path }}
