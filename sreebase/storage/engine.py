@@ -490,56 +490,32 @@ class StorageEngine:
         """
         Rewrite the log to drop dead bytes (overwritten docs and tombstones).
 
-        Uses a "catch-up" strategy to minimize lock contention:
-        1. Snapshot live pointers and current EOF.
-        2. Read live data and write to ``.compacting`` (lock is only held briefly per read).
-        3. Take the lock exclusively to block writes.
-        4. Copy any new writes that happened during step 2 to ``.compacting``.
-        5. Swap the file atomically and re-hydrate the index.
+        Takes an exclusive lock for the entire operation. This blocks reads
+        and writes during compaction but guarantees correctness — no scan
+        can observe stale offsets from a swapped-out file.
         """
         compact_path = f"{self._filepath}.compacting"
 
-        # 1. Snapshot
         with self._lock:
-            snapshot = list(self._index.values())
-            catchup_offset = self._write_offset
-
-        # 2. Build the compacted file (concurrent appends can happen here)
-        with open(compact_path, "wb") as cfh:
-            for ptr in snapshot:
-                # Need the lock just for the brief read from the main file
-                # to prevent file pointer races.
-                with self._lock:
+            # 1. Write all live documents to the compaction file
+            with open(compact_path, "wb") as cfh:
+                for ptr in self._index.values():
                     doc = self._read_pointer(ptr)
+                    payload = self._serialize(doc)
+                    frame = self._encode_frame(MAGIC_PUT, payload)
+                    cfh.write(frame)
 
-                payload = self._serialize(doc)
-                frame = self._encode_frame(MAGIC_PUT, payload)
-                cfh.write(frame)
-            
-            cfh.flush()
-            os.fsync(cfh.fileno())
+                cfh.flush()
+                os.fsync(cfh.fileno())
 
-            # 3. Swap phase (exclusive lock)
-            with self._lock:
-                # Flush any pending writes to the main file so we can read them.
-                self.sync()
+            # 2. Swap the files atomically
+            self._fh.close()
+            os.replace(compact_path, self._filepath)
 
-                # 4. Catch-up: copy everything written since `catchup_offset`
-                if self._write_offset > catchup_offset:
-                    self._fh.seek(catchup_offset, os.SEEK_SET)
-                    remaining = self._fh.read(self._write_offset - catchup_offset)
-                    cfh.write(remaining)
-                    cfh.flush()
-                    os.fsync(cfh.fileno())
-
-                # 5. Swap the files
-                self._fh.close()
-                os.replace(compact_path, self._filepath)
-                
-                # Re-open and re-hydrate completely (fast because it's compacted).
-                self._fh = open(self._filepath, "a+b")
-                self._write_offset = 0
-                self._hydrate()
+            # 3. Re-open and re-hydrate the index from the compacted file
+            self._fh = open(self._filepath, "a+b")
+            self._write_offset = 0
+            self._hydrate()
 
     # Context-manager sugar:  ``with StorageEngine("data") as db: ...``
     def __enter__(self) -> "StorageEngine":

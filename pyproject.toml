@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sreebase"
 version = "1.0.0"
-description = "The Bracketless, Enterprise-Grade NoSQL Database"
+description = "A Lightweight, Educational Bracketless NoSQL Database"
 readme = "README.md"
 authors = [
   { name="Gowtham Reddy" }
@@ -23,3 +23,6 @@ sreebase = "sreebase.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["sreebase*", "reddybase*"]
+
+[project.optional-dependencies]
+dev = ["pytest"]

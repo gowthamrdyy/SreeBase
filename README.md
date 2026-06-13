@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">SreeBase</h1>
-  <p align="center"><strong>The Bracketless, Enterprise-Grade NoSQL Database</strong></p>
+  <p align="center"><strong>A Lightweight, Educational Bracketless NoSQL Database</strong></p>
   <p align="center">
     <a href="https://github.com/gowthamrdyy/sreebase/actions"><img src="https://img.shields.io/badge/tests-78%20passing-success" alt="Tests"></a>
     <a href="https://github.com/gowthamrdyy/sreebase/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
@@ -9,22 +9,20 @@
   </p>
 </p>
 
-SreeBase is a high-performance, embedded and standalone NoSQL document database built entirely in Python. It features a custom English-like bracketless query language, O(1) secondary indexing, and a robust append-only storage engine designed for massive write throughput.
+SreeBase is an educational, lightweight NoSQL document database built entirely in Python. It features a custom English-like bracketless query language, O(1) secondary indexing, and a simple append-only storage engine.
 
 ---
 
-## 🚀 Why SreeBase? (Hardcore Engineering)
+## 🚀 Why SreeBase?
 
-Unlike traditional document stores, SreeBase was engineered from the ground up to solve complex enterprise bottlenecks using advanced data structures:
+SreeBase was built to explore database internals and query language parsing using advanced data structures:
 
 - **Bitcask-style Append-Only Log:** Data is written sequentially (`.sree` files) for near-instantaneous disk I/O, avoiding the massive write-amplification overhead of B-Trees.
 - **Group Commit & Background Compaction:** Highly concurrent write paths with batched `fsync` grouping. A background-safe compaction engine hot-swaps active logs without pausing reads.
 - **Custom AST & Parser:** A bespoke lexer and recursive-descent parser. No JSON brackets required. Write queries like plain English.
 - **O(1) Secondary Indexes:** Hash-map based secondary indexing directly in RAM that stays perfectly in sync with mutations.
 - **Aggregation Pipeline:** Powerful `aggregate` syntax supporting filtering (`where`), grouping (`group by`), and statistical math (`sum()`, `avg()`, `count()`).
-- **RBAC Security:** Role-Based Access Control and a secure authentication handshake natively built into the TCP socket layer.
-
----
+- **RBAC Security:** Role-Based Access Control to separate admin and read-only users.
 
 ## ⚡ Quick Start (Docker)
 ## ⚡ Quick Start

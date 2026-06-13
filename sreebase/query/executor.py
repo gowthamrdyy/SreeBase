@@ -20,7 +20,10 @@ secondary indexes (Step 6) will make it fast.
 """
 
 import os
+import hashlib
+import hmac
 import operator
+import secrets
 from typing import Any, Callable, Dict, List, Optional
 
 from sreebase.storage.engine import StorageEngine
@@ -41,6 +44,9 @@ from sreebase.query.aggregator import Aggregator
 from sreebase.query.lexer import Lexer
 from sreebase.query.parser import Parser
 from sreebase.errors import ExecutionError
+
+# Known roles for RBAC validation
+_VALID_ROLES = frozenset({"admin", "read"})
 
 
 # ---------------------------------------------------------------------- #
@@ -125,6 +131,13 @@ class Executor:
             if role != "admin" and isinstance(stmt, CreateUserStatement):
                 raise ExecutionError("Permission denied: only 'admin' can create users.")
 
+        # Block non-admin access to _system.* collections.
+        # This prevents read-role users from querying _system.users etc.
+        collection = getattr(stmt, 'collection', None)
+        if collection and collection.startswith("_system."):
+            if role != "admin":
+                raise ExecutionError("Permission denied: only 'admin' can access system collections.")
+
         if isinstance(stmt, CreateIndexStatement):
             return self._exec_create_index(stmt)
         if isinstance(stmt, CreateUserStatement):
@@ -148,29 +161,56 @@ class Executor:
     # ------------------------------------------------------------------ #
     # SECURITY & USERS
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _hash_password(password: str, salt: bytes = None) -> tuple:
+        """Hash a password using PBKDF2-HMAC-SHA256 with a random salt."""
+        if salt is None:
+            salt = secrets.token_bytes(16)
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000)
+        return salt, dk
+
+    @staticmethod
+    def _verify_password(password: str, salt_hex: str, hash_hex: str) -> bool:
+        """Verify a password against stored salt+hash using constant-time comparison."""
+        salt = bytes.fromhex(salt_hex)
+        expected = bytes.fromhex(hash_hex)
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000)
+        return hmac.compare_digest(dk, expected)
+
     def _exec_create_user(self, stmt: CreateUserStatement) -> Dict[str, Any]:
+        # Validate role
+        if stmt.role not in _VALID_ROLES:
+            raise ExecutionError(f"Invalid role '{stmt.role}'. Allowed: {', '.join(sorted(_VALID_ROLES))}")
+
         engine = self.db.get_engine("_system.users")
         existing = self._filter(engine, [Condition(field="username", op="=", value=stmt.username)])
         if existing:
             raise ExecutionError(f"User '{stmt.username}' already exists.")
-            
+
+        salt, dk = self._hash_password(stmt.password)
         engine.insert({
             "username": stmt.username,
-            "password": stmt.password,
+            "password_hash": dk.hex(),
+            "password_salt": salt.hex(),
             "role": stmt.role
         })
         return {"status": "ok", "message": f"User '{stmt.username}' created with role '{stmt.role}'"}
 
     def _exec_login(self, stmt: LoginStatement) -> Dict[str, Any]:
         engine = self.db.get_engine("_system.users")
+        # Look up by username only, then verify password with constant-time comparison
         results = self._filter(engine, [
             Condition(field="username", op="=", value=stmt.username),
-            Condition(field="password", op="=", value=stmt.password)
         ])
         if not results:
+            # Perform a dummy hash to avoid timing side-channel leaking whether user exists
+            self._hash_password("dummy")
             raise ExecutionError("Invalid username or password.")
-        
+
         user = results[0]
+        if not self._verify_password(stmt.password, user["password_salt"], user["password_hash"]):
+            raise ExecutionError("Invalid username or password.")
+
         return {"_internal_login_role": user["role"], "status": "ok", "message": f"Logged in as {user['username']}"}
 
     # ------------------------------------------------------------------ #

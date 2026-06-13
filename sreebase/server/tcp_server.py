@@ -29,6 +29,12 @@ logger = logging.getLogger("sreebase.server")
 HEADER_FMT = ">I"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
 
+# Maximum allowed request payload size (1 MB). Reject anything larger.
+MAX_PAYLOAD_SIZE = 1 * 1024 * 1024
+
+# Idle socket timeout in seconds. Drops stale connections.
+SOCKET_TIMEOUT = 30
+
 # A global/shared Executor instance for the server lifetime.
 # Since the storage engine locks correctly, it is safe to share this
 # across multiple request handler threads.
@@ -51,9 +57,10 @@ class SreeBaseRequestHandler(socketserver.StreamRequestHandler):
     def handle(self):
         client_address = f"{self.client_address[0]}:{self.client_address[1]}"
         logger.info(f"Accepted connection from {client_address}")
-        
+
         # Connection state
         self.role = None
+        self.request.settimeout(SOCKET_TIMEOUT)
 
         try:
             while True:
@@ -68,6 +75,18 @@ class SreeBaseRequestHandler(socketserver.StreamRequestHandler):
 
                 length, = struct.unpack(HEADER_FMT, header)
 
+                # Reject oversized payloads before reading them
+                if length > MAX_PAYLOAD_SIZE:
+                    logger.warning(f"Rejecting oversized payload ({length} bytes) from {client_address}")
+                    response = {
+                        "status": "error",
+                        "error": "PayloadTooLarge",
+                        "message": f"Request exceeds maximum size of {MAX_PAYLOAD_SIZE} bytes."
+                    }
+                    self.wfile.write(encode_message(response))
+                    self.wfile.flush()
+                    break
+
                 # 2. Read the exact payload length
                 payload_bytes = self.rfile.read(length)
                 if len(payload_bytes) < length:
@@ -80,19 +99,19 @@ class SreeBaseRequestHandler(socketserver.StreamRequestHandler):
                 # 3. Execute the query
                 try:
                     result = _executor.execute(query_text, role=self.role)
-                    
+
                     # Intercept login
                     if isinstance(result, dict) and "_internal_login_role" in result:
                         self.role = result.pop("_internal_login_role")
-                        
+
                     response = {"status": "ok", "data": result}
                 except SreeBaseError as e:
                     # Catch query parsing/execution errors cleanly to send back to client
                     response = {"status": "error", "error": type(e).__name__, "message": str(e)}
                 except Exception as e:
-                    # Catch unexpected crashes to prevent thread death
+                    # Never leak internal details to the client
                     logger.exception(f"Unexpected error executing query from {client_address}")
-                    response = {"status": "error", "error": "InternalServerError", "message": str(e)}
+                    response = {"status": "error", "error": "InternalServerError", "message": "An internal error occurred."}
 
                 # 4. Send the result back
                 self.wfile.write(encode_message(response))

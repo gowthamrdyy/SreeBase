@@ -3,6 +3,7 @@ Tests for the SreeBase Network Layer (TCP Server & Protocol).
 """
 
 import socket
+import struct
 import time
 import threading
 import pytest
@@ -83,5 +84,24 @@ def test_network_roundtrip(tcp_server):
         assert resp3["status"] == "error"
         assert resp3["error"] == "ParserError"
         
+    finally:
+        sock.close()
+
+def test_network_oversized_payload(tcp_server):
+    host, port = tcp_server
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((host, port))
+    
+    try:
+        # Send a length header that exceeds MAX_PAYLOAD_SIZE (1MB)
+        # e.g., 2 MB
+        oversized_length = 2 * 1024 * 1024
+        header = struct.pack(">I", oversized_length)
+        sock.sendall(header)
+        
+        # The server should immediately reject without reading the payload
+        resp = decode_message(sock)
+        assert resp["status"] == "error"
+        assert resp["error"] == "PayloadTooLarge"
     finally:
         sock.close()
