@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  sreebase:
+    build: .
+    container_name: sreebase-server
+    ports:
+      - "6969:6969"
+    volumes:
+      - ./sreebase_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('127.0.0.1', 6969)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

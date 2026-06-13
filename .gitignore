@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual Environment
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# SreeBase Data (local dev only)
+sreebase_data/
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PyInstaller
+*.manifest
