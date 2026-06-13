@@ -2,9 +2,9 @@
   <h1 align="center">SreeBase</h1>
   <p align="center"><strong>The Bracketless, Enterprise-Grade NoSQL Database</strong></p>
   <p align="center">
-    <a href="https://github.com/[YourUsername]/sreebase/actions"><img src="https://img.shields.io/badge/tests-78%20passing-success" alt="Tests"></a>
-    <a href="https://github.com/[YourUsername]/sreebase/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-    <a href="https://github.com/[YourUsername]/sreebase/releases"><img src="https://img.shields.io/github/v/release/[YourUsername]/sreebase" alt="Release"></a>
+    <a href="https://github.com/gowthamrdyy/sreebase/actions"><img src="https://img.shields.io/badge/tests-78%20passing-success" alt="Tests"></a>
+    <a href="https://github.com/gowthamrdyy/sreebase/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+    <a href="https://github.com/gowthamrdyy/sreebase/releases"><img src="https://img.shields.io/github/v/release/gowthamrdyy/sreebase" alt="Release"></a>
     <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python Version"></a>
   </p>
 </p>
@@ -27,19 +27,19 @@ Unlike traditional document stores, SreeBase was engineered from the ground up t
 ---
 
 ## ⚡ Quick Start (Docker)
+## ⚡ Quick Start
 
-The absolute fastest way to run the SreeBase server is via Docker Compose.
+SreeBase is packaged natively. You can install it globally on your machine using `pip`.
 
 ```bash
-# Clone the repository
-git clone https://github.com/[YourUsername]/sreebase.git
-cd sreebase
+# Install globally
+pip install sreebase
 
 # Start the SreeBase TCP server in the background
-docker-compose up -d
+sreebase serve &
 ```
 
-Your database is now running on `127.0.0.1:6969`. All data is persistently saved to the `./sreebase_data` folder on your host machine.
+Your database is now running on `127.0.0.1:6969`. All data is persistently saved to the `./data` folder in your current directory.
 
 ---
 
@@ -49,7 +49,7 @@ SreeBase comes with an interactive, professional REPL client boasting command hi
 
 ```bash
 # Connect to the server securely
-python -m sreebase.client.cli --host 127.0.0.1 --port 6969 --user admin
+sreebase shell -u admin
 ```
 
 ### Bracketless Querying
