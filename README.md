@@ -47,8 +47,25 @@ Your database is now running on `127.0.0.1:6969`. All data is persistently saved
 
 SreeBase comes with an interactive, professional REPL client boasting command history, arrow-key support, and ASCII-rendered tabular results.
 
+### 1. The Bootstrap Setup (First Time Only)
+SreeBase is highly secure by default. When you spin up a completely fresh database, you must connect anonymously to create your initial admin account.
+
 ```bash
-# Connect to the server securely
+# Connect to the shell anonymously
+sreebase shell
+```
+
+Then, create your root user:
+```sql
+sreebase> create user admin password "supersecret" role admin
+```
+Type `exit` to leave. Your database is now permanently locked down and secured!
+
+### 2. Standard Login
+From now on, you must use your `-u` argument to connect securely. SreeBase will automatically hide your keystrokes and prompt for your password:
+
+```bash
+# Connect securely
 sreebase shell -u admin
 ```
 
