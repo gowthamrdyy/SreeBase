@@ -67,6 +67,11 @@ def print_table(data: list):
     
     # Extract keys and calculate max widths
     keys = list(data[0].keys())
+    
+    # Hide the internal _id from the table for a cleaner look
+    if "_id" in keys:
+        keys.remove("_id")
+        
     col_widths = {k: len(str(k)) for k in keys}
     
     for row in data:
