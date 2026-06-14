@@ -7,14 +7,14 @@ theme:
   name: material
   palette:
     - scheme: default
-      primary: green
-      accent: teal
+      primary: indigo
+      accent: deep purple
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: green
-      accent: teal
+      primary: indigo
+      accent: deep purple
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -22,9 +22,11 @@ theme:
     text: Inter
     code: Fira Code
   features:
+    - navigation.sections
     - navigation.expand
     - navigation.indexes
     - navigation.top
+    - navigation.instant
     - toc.integrate
     - content.code.copy
     - search.suggest
@@ -32,6 +34,8 @@ theme:
 
 nav:
   - Home: index.md
+  - FAQ & Troubleshooting: faq.md
+  - Future Roadmap: roadmap.md
   - About Me: about.md
   - Get Started:
       - tutorials/index.md

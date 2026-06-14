@@ -1,31 +1,53 @@
-# SreeBase Tutorial
+---
+hide:
+  - navigation
+  - toc
+---
 
-SreeBase is a lightweight educational document database written in Python. It is built to help you learn how a small database can combine an append-only storage engine, a custom query language, indexes, a TCP server, a CLI, and a Python SDK.
+<div style="text-align: center; margin-top: 4rem; margin-bottom: 4rem;">
+  <h1 style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; color: var(--md-primary-fg-color);">SreeBase</h1>
+  <p style="font-size: 1.5rem; color: var(--md-default-fg-color--light); max-width: 600px; margin: 0 auto 2rem auto;">
+    A lightning-fast, educational document database with a beautiful bracketless query language.
+  </p>
+  <a href="tutorials/index.md" class="md-button md-button--primary" style="font-size: 1.2rem; padding: 0.5rem 2rem;">Get Started</a>
+  <a href="faq.md" class="md-button" style="font-size: 1.2rem; padding: 0.5rem 2rem;">Read FAQ</a>
+</div>
 
-This documentation is organized like a course. Start with the basics, write your first queries, then move into SDK usage and operational topics.
+## Why SreeBase?
 
-## What You Will Learn
+SreeBase is built from scratch in Python to demystify how databases actually work under the hood. It skips the bloated enterprise features in favor of pure, readable systems engineering.
 
-| Section | Best for | What you learn |
-| --- | --- | --- |
-| [Get Started](tutorials/index.md) | New users | Installation, first database, core ideas |
-| [Query Language](syntax.md) | Query writers | Insert, get, update, delete, indexes, aggregations |
-| [Build Apps](api.md) | Python developers | Use `reddybase` from your application |
-| [Operations](tutorials/security.md) | Admins and maintainers | Users, roles, storage, troubleshooting |
-| [Cheat Sheet](tutorials/cheat-sheet.md) | Everyone | Quick command reference |
+<div class="grid cards" markdown>
 
-## Why SreeBase Is Different
+-   :material-code-brackets: **Bracketless Query Language**
 
-- It uses indentation instead of JSON-like braces for queries.
-- Each collection is stored in its own `.sree` append-only file.
-- Documents are Python/JSON-style key-value objects.
-- Secondary indexes are stored in memory and rebuilt from metadata.
-- The TCP server supports basic authentication and admin/read roles.
+    ---
 
-!!! note "Learning project, not MongoDB"
-    SreeBase is not a MongoDB replacement. It does not include replication, sharding, TLS, transactions, or a mature query planner. It is a compact project for learning database internals and building small local experiments.
+    Forget `{}` and `;`. SreeBase uses an elegant, indentation-based parser inspired by Python.
 
-## A First Query
+-   :material-database-sync: **Bitcask Storage Engine**
+
+    ---
+
+    Writes are blindingly fast append-only logs. Reads are O(1) guaranteed via in-memory hash indexes.
+
+-   :material-server-network: **TCP Server & Local Shell**
+
+    ---
+
+    Run a standalone server with Role-Based Access Control, or boot directly into a SQLite-style embedded local shell.
+
+-   :material-language-python: **Native Python SDK**
+
+    ---
+
+    Integrate SreeBase directly into your Python apps with our secure, injection-protected `reddybase` driver.
+
+</div>
+
+---
+
+## ⚡ A First Query
 
 ```sql
 insert into employees
@@ -41,11 +63,10 @@ get employees
     limit 5
 ```
 
-## Recommended Learning Path
+## 🗺️ Learning Path
 
-1. [Install and run SreeBase](tutorials/installation.md)
-2. [Create your first database records](tutorials/first-database.md)
-3. [Learn the query syntax](syntax.md)
-4. [Use the Python SDK](api.md)
-5. [Review admin and security basics](tutorials/security.md)
+1. **[Install SreeBase](tutorials/installation.md)**
+2. **[Create your first database](tutorials/first-database.md)**
+3. **[Learn the bracketless syntax](syntax.md)**
+4. **[Review the Future Roadmap](roadmap.md)**
 
