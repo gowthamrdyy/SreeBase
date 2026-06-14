@@ -13,6 +13,9 @@ import socket
 import struct
 import argparse
 import getpass
+
+from reddybase.client.driver import ReddyBaseError, _escape_string, _validate_identifier
+
 try:
     import readline  # Adds history and arrow-key support to input() automatically
 except ImportError:
@@ -50,6 +53,11 @@ def _recv_exactly(sock: socket.socket, n: int) -> bytes:
             return None
         data.extend(packet)
     return bytes(data)
+
+def build_login_query(user: str, password: str) -> str:
+    """Build a login query with escaped credentials."""
+    _validate_identifier(user, "username")
+    return f'login {user} password "{_escape_string(password)}"\n'
 
 def print_table(data: list):
     """Prints a list of dictionaries as an ASCII table."""
@@ -106,9 +114,11 @@ def repl(host: str, port: int, user: str = None):
     # Handshake / Login
     if user:
         password = getpass.getpass(f"Password for {user}: ")
-        login_query = f'login {user}\n    password = "{password}"\n' # Ensure correct syntax: login <user> password <pwd>
-        # Wait, syntax is `login <user> password "<pwd>"\n`
-        login_query = f'login {user} password "{password}"\n'
+        try:
+            login_query = build_login_query(user, password)
+        except ReddyBaseError as e:
+            print(f"\033[91mInvalid login input: {e}\033[0m")
+            sys.exit(1)
         sock.sendall(encode_message(login_query))
         try:
             resp = decode_message(sock)

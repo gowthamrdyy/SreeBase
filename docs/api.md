@@ -1,10 +1,8 @@
-# Python SDK (`reddybase`)
+# Python SDK: `reddybase`
 
-The official SreeBase Python SDK is the recommended way to connect your web apps (FastAPI, Django) to the SreeBase engine.
+The `reddybase` package is the Python client for talking to a running SreeBase TCP server.
 
-## Installation
-
-Ensure SreeBase is running on port 6969, and simply import the driver:
+## Connect
 
 ```python
 from reddybase.client.driver import Client
@@ -13,30 +11,120 @@ client = Client(host="127.0.0.1", port=6969)
 client.login("admin", "supersecret")
 ```
 
-## ORM Usage
+Use a context manager when possible:
 
-The `Collection` object wraps raw queries into standard Python method calls. 
+```python
+from reddybase.client.driver import Client
 
-### Inserting
+with Client() as client:
+    client.login("admin", "supersecret")
+    users = client.collection("users")
+    print(users.get())
+```
+
+## Collections
+
 ```python
 users = client.collection("users")
+```
+
+Collection names must be simple identifiers such as `users`, `server_logs`, or `app.events`.
+
+## Insert
+
+```python
 users.insert({
-    "name": "Bob",
-    "role": "manager",
-    "salary": 180000
+    "name": "Maya",
+    "role": "developer",
+    "salary": 120000,
+    "active": True,
 })
 ```
 
-### Querying
-You can pass strict operators in the string value.
+Supported SDK literal values:
+
+- `str`
+- `int`
+- finite `float`
+- `bool`
+- `None`
+
+Other Python objects are rejected so they cannot accidentally become unsafe query text.
+
+## Get
+
+Equality filters use normal values:
+
 ```python
-managers = users.get(where={"role": "manager", "salary": "> 100000"})
+developers = users.get(where={"role": "developer"})
 ```
 
-### Aggregations
+Comparisons use tuple conditions:
+
+```python
+senior_developers = users.get(
+    where={
+        "role": "developer",
+        "salary": (">=", 100000),
+    },
+    sort=("salary", "desc"),
+    limit=10,
+)
+```
+
+!!! tip "Use tuple comparisons"
+    Do not write operators inside strings. Use `(">", 10)`, `(">=", 10)`, `("!=", "guest")`, and similar tuples.
+
+## Update
+
+```python
+users.update(
+    where={"role": "developer"},
+    set_fields={"active": True}
+)
+```
+
+## Delete
+
+```python
+users.delete(where={"active": False})
+```
+
+!!! warning
+    Calling `users.delete()` without a filter deletes every document in the collection.
+
+## Aggregate
+
 ```python
 stats = users.aggregate(
     group_by="role",
-    calculate=["avg(salary)", "count()"]
+    calculate=["avg(salary)", "count()"],
+    where={"active": True}
 )
 ```
+
+## Raw Queries
+
+For advanced usage, you can send query text directly:
+
+```python
+result = client.raw_query("""
+get users
+    role = "developer"
+""")
+```
+
+Use the collection methods when taking input from users. They validate identifiers and escape string values.
+
+## Error Handling
+
+```python
+from reddybase.client.driver import Client, ReddyBaseError
+
+try:
+    with Client() as client:
+        client.login("admin", "wrong-password")
+except ReddyBaseError as exc:
+    print(f"SreeBase error: {exc}")
+```
+

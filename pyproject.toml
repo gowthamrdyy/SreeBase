@@ -25,4 +25,14 @@ sreebase = "sreebase.__main__:main"
 include = ["sreebase*", "reddybase*"]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "pymdown-extensions",
+]
+dev = [
+    "pytest",
+    "mkdocs",
+    "mkdocs-material",
+    "pymdown-extensions",
+]

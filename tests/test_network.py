@@ -105,3 +105,18 @@ def test_network_oversized_payload(tcp_server):
         assert resp["error"] == "PayloadTooLarge"
     finally:
         sock.close()
+
+def test_network_invalid_utf8_payload(tcp_server):
+    host, port = tcp_server
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((host, port))
+
+    try:
+        payload = b"\xff\xfe\xfa"
+        sock.sendall(struct.pack(">I", len(payload)) + payload)
+
+        resp = decode_message(sock)
+        assert resp["status"] == "error"
+        assert resp["error"] == "InvalidEncoding"
+    finally:
+        sock.close()

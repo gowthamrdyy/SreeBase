@@ -208,7 +208,25 @@ class Executor:
             raise ExecutionError("Invalid username or password.")
 
         user = results[0]
-        if not self._verify_password(stmt.password, user["password_salt"], user["password_hash"]):
+        if "password_hash" not in user or "password_salt" not in user:
+            # One-time migration for pre-hashing user records. We only migrate
+            # after a successful plaintext password check, then remove it.
+            if user.get("password") != stmt.password:
+                raise ExecutionError("Invalid username or password.")
+            salt, dk = self._hash_password(stmt.password)
+            migrated = dict(user)
+            migrated.pop("password", None)
+            migrated["password_hash"] = dk.hex()
+            migrated["password_salt"] = salt.hex()
+            engine.update(migrated[StorageEngine.ID_FIELD], migrated)
+            user = migrated
+
+        try:
+            verified = self._verify_password(stmt.password, user["password_salt"], user["password_hash"])
+        except (KeyError, TypeError, ValueError):
+            raise ExecutionError("Invalid username or password.")
+
+        if not verified:
             raise ExecutionError("Invalid username or password.")
 
         return {"_internal_login_role": user["role"], "status": "ok", "message": f"Logged in as {user['username']}"}

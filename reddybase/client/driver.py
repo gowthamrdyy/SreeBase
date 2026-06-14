@@ -6,16 +6,19 @@ Programmatic driver for connecting to SreeBase servers.
 Provides a clean Pythonic API that compiles to SreeBase bracketless syntax.
 """
 import re
+import math
 import socket
 import struct
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 HEADER_FMT = ">I"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
 
 # Only allow safe identifiers: alphanumeric, underscores, dots (for system collections)
 _SAFE_IDENT = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_.]*\Z')
+_VALID_OPS = frozenset({"=", "!=", ">", ">=", "<", "<="})
+_VALID_SORT_DIRS = frozenset({"asc", "desc"})
 
 def _escape_string(val: str) -> str:
     """Escape special characters to prevent query injection."""
@@ -43,20 +46,45 @@ class Collection:
             return 'true' if val else 'false'
         elif val is None:
             return 'null'
-        else:
+        elif isinstance(val, int):
             return str(val)
+        elif isinstance(val, float):
+            if not math.isfinite(val):
+                raise ReddyBaseError(f"Unsupported non-finite float literal: {val!r}")
+            return str(val)
+        else:
+            raise ReddyBaseError(f"Unsupported literal type: {type(val).__name__}")
 
     def _format_condition(self, k: str, v: Any) -> str:
         _validate_identifier(k, "field name")
-        if isinstance(v, str):
-            v_stripped = v.strip()
-            for op in ['>=', '<=', '!=', '=', '>', '<']:
-                if v_stripped.startswith(op):
-                    # Operator explicitly provided in string (e.g. '> 90' or '= "critical"')
-                    # The value portion after the operator may contain a string literal;
-                    # we pass it through as-is since it's already in query syntax.
-                    return f"{k} {v_stripped}"
+        if isinstance(v, tuple):
+            if len(v) != 2:
+                raise ReddyBaseError("Condition tuples must be (operator, value).")
+            op, value = v
+            if op not in _VALID_OPS:
+                raise ReddyBaseError(f"Invalid comparison operator: {op!r}")
+            return f"{k} {op} {self._format_literal(value)}"
         return f"{k} = {self._format_literal(v)}"
+
+    def _format_sort(self, sort: Union[str, Tuple[str, str]]) -> str:
+        if isinstance(sort, tuple):
+            if len(sort) != 2:
+                raise ReddyBaseError("Sort tuples must be (field, direction).")
+            field, direction = sort
+        else:
+            parts = sort.split()
+            if len(parts) == 1:
+                field, direction = parts[0], "asc"
+            elif len(parts) == 2:
+                field, direction = parts
+            else:
+                raise ReddyBaseError(f"Invalid sort clause: {sort!r}")
+
+        _validate_identifier(field, "sort field")
+        direction = str(direction).lower()
+        if direction not in _VALID_SORT_DIRS:
+            raise ReddyBaseError(f"Invalid sort direction: {direction!r}")
+        return f"{field} {direction}"
 
     def insert(self, document: Dict[str, Any]) -> Dict[str, Any]:
         """Insert a document into the collection."""
@@ -67,15 +95,14 @@ class Collection:
         query = "\n".join(lines) + "\n"
         return self.client.raw_query(query)
 
-    def get(self, where: Optional[Dict[str, Any]] = None, sort: Optional[str] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get(self, where: Optional[Dict[str, Any]] = None, sort: Optional[Union[str, Tuple[str, str]]] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Fetch documents from the collection with optional filters."""
         lines = [f"get {self.name}"]
         if where:
             for k, v in where.items():
                 lines.append(f"    {self._format_condition(k, v)}")
         if sort:
-            _validate_identifier(sort.split()[0], "sort field")
-            lines.append(f"    sort by {sort}")
+            lines.append(f"    sort by {self._format_sort(sort)}")
         if limit:
             lines.append(f"    limit {int(limit)}")
         query = "\n".join(lines) + "\n"
@@ -107,17 +134,20 @@ class Collection:
     def aggregate(self, group_by: str, calculate: List[str], where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Run aggregation analytics on the collection."""
         _validate_identifier(group_by, "group_by field")
+        clean_calculations = []
         for expr in calculate:
             # Allow function calls like "avg(salary)" and "count()"
-            if not re.match(r'^[a-zA-Z_]+\([a-zA-Z0-9_]*\)$', expr.strip()):
+            clean_expr = expr.strip()
+            if not re.match(r'^[a-zA-Z_]+\([a-zA-Z0-9_]*\)$', clean_expr):
                 raise ReddyBaseError(f"Invalid calculate expression: {expr!r}")
+            clean_calculations.append(clean_expr)
         lines = [f"aggregate {self.name}"]
         if where:
             lines.append("    where")
             for k, v in where.items():
                 lines.append(f"        {self._format_condition(k, v)}")
         lines.append(f"    group by {group_by}")
-        lines.append(f"    calculate {', '.join(calculate)}")
+        lines.append(f"    calculate {', '.join(clean_calculations)}")
         query = "\n".join(lines) + "\n"
         return self.client.raw_query(query)
 
@@ -133,6 +163,7 @@ class Client:
         
     def login(self, username: str, password: str) -> None:
         """Authenticate the connection."""
+        _validate_identifier(username, "username")
         query = f'login {_escape_string(username)} password "{_escape_string(password)}"\n'
         res = self._execute(query)
         if res.get("status") == "error":

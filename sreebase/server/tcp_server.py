@@ -93,7 +93,18 @@ class SreeBaseRequestHandler(socketserver.StreamRequestHandler):
                     logger.warning(f"Connection torn during payload read from {client_address}")
                     break
 
-                query_text = payload_bytes.decode("utf-8")
+                try:
+                    query_text = payload_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    response = {
+                        "status": "error",
+                        "error": "InvalidEncoding",
+                        "message": "Request payload must be valid UTF-8."
+                    }
+                    self.wfile.write(encode_message(response))
+                    self.wfile.flush()
+                    continue
+
                 logger.debug(f"Received query from {client_address}: {query_text!r}")
 
                 # 3. Execute the query
