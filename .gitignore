@@ -25,3 +25,4 @@ Thumbs.db
 
 # PyInstaller
 *.manifest
+site/

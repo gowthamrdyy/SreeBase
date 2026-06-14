@@ -20,10 +20,17 @@ def main():
     # ---------------------------------------------------------
     # 2. CLIENT SUBCOMMAND
     # ---------------------------------------------------------
-    shell_parser = subparsers.add_parser("shell", help="Launch the interactive REPL shell")
+    shell_parser = subparsers.add_parser("shell", help="Launch the interactive REPL shell (TCP Client)")
     shell_parser.add_argument("-H", "--host", default="127.0.0.1", help="Server host (default: 127.0.0.1)")
     shell_parser.add_argument("-p", "--port", type=int, default=6969, help="Server port (default: 6969)")
     shell_parser.add_argument("-u", "--user", help="Username to login with")
+
+    # ---------------------------------------------------------
+    # 3. EMBEDDED LOCAL SUBCOMMAND
+    # ---------------------------------------------------------
+    local_parser = subparsers.add_parser("local", help="Start an embedded local shell (no server needed)")
+    local_parser.add_argument("--data-dir", default="data", help="Directory for storage")
+    local_parser.add_argument("-u", "--user", help="Username to login with")
     
     args = parser.parse_args()
     
@@ -34,6 +41,10 @@ def main():
     elif args.command == "shell":
         from sreebase.client.cli import repl
         repl(host=args.host, port=args.port, user=args.user)
+        
+    elif args.command == "local":
+        from sreebase.client.cli import local_repl
+        local_repl(data_dir=args.data_dir, user=args.user)
 
 if __name__ == "__main__":
     main()

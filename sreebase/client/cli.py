@@ -101,6 +101,47 @@ def print_pretty_json(data):
     # but the structure will be very readable.
     print("")
 
+def _read_query() -> str:
+    """Read a multi-line query from stdin."""
+    try:
+        line = input("sreebase> ")
+    except EOFError:
+        return None
+        
+    if line.strip().lower() in ("exit", "quit", "\\q"):
+        return None
+
+    lines = [line]
+    if line.strip() != "":
+        while True:
+            try:
+                next_line = input("      ... ")
+            except EOFError:
+                break
+            if next_line.strip() == "":
+                break
+            lines.append(next_line)
+
+    return "\n".join(lines) + "\n"
+
+def _print_result(response: dict, query: str = ""):
+    """Format and print the execution result dictionary."""
+    if response.get("status") == "error":
+        err_type = response.get('error', 'Error')
+        msg = response.get('message', 'Unknown error')
+        print(f"\033[91m[{err_type}]\033[0m {msg}\n")
+    else:
+        data = response.get("data")
+        is_show_collections = query.strip().lower().startswith("show collections")
+        
+        if is_show_collections and isinstance(data, list):
+            print_table(data)
+        elif isinstance(data, list) and len(data) > 0 and all(isinstance(d, dict) for d in data) and len(data[0].keys()) <= 5 and not any(isinstance(v, (dict, list)) for v in data[0].values()):
+            print_table(data)
+        else:
+            print(json.dumps(data, indent=2))
+            print(f"({len(data) if isinstance(data, list) else 1} documents)\n")
+
 def repl(host: str, port: int, user: str = None):
     """Run the interactive Read-Eval-Print Loop."""
     try:
@@ -136,31 +177,9 @@ def repl(host: str, port: int, user: str = None):
 
     try:
         while True:
-            # 1. Accumulate input lines
-            try:
-                line = input("sreebase> ")
-            except EOFError:
+            query = _read_query()
+            if query is None:
                 break
-                
-            if line.strip().lower() in ("exit", "quit", "\\q"):
-                break
-
-            lines = [line]
-            
-            # Multi-line handling
-            if line.strip() != "":
-                while True:
-                    try:
-                        next_line = input("      ... ")
-                    except EOFError:
-                        break
-                        
-                    if next_line.strip() == "":
-                        break
-                    lines.append(next_line)
-
-            query = "\n".join(lines) + "\n"
-            
             if not query.strip():
                 continue
 
@@ -174,26 +193,7 @@ def repl(host: str, port: int, user: str = None):
             # 3. Receive and print response
             try:
                 response = decode_message(sock)
-                if response.get("status") == "error":
-                    err_type = response.get('error', 'Error')
-                    msg = response.get('message', 'Unknown error')
-                    print(f"\033[91m[{err_type}]\033[0m {msg}\n")
-                else:
-                    data = response.get("data")
-                    
-                    # Heuristic to detect tabular data vs normal document output
-                    is_show_collections = query.strip().lower().startswith("show collections")
-                    
-                    if is_show_collections and isinstance(data, list):
-                        print_table(data)
-                    elif isinstance(data, list) and len(data) > 0 and all(isinstance(d, dict) for d in data) and len(data[0].keys()) <= 5 and not any(isinstance(v, (dict, list)) for v in data[0].values()):
-                        # Tabular format for flat list of dicts (like aggregate output)
-                        print_table(data)
-                    else:
-                        # Pretty JSON for complex documents
-                        print(json.dumps(data, indent=2))
-                        print(f"({len(data) if isinstance(data, list) else 1} documents)\n")
-                        
+                _print_result(response, query)
             except ConnectionError:
                 print("\033[91mError: Connection to server lost while reading response.\033[0m")
                 break
@@ -204,6 +204,59 @@ def repl(host: str, port: int, user: str = None):
         print("\nExiting.")
     finally:
         sock.close()
+
+
+def local_repl(data_dir: str, user: str = None):
+    """Run the interactive Read-Eval-Print Loop embedded locally."""
+    from sreebase.query.executor import Executor
+    from sreebase.errors import SreeBaseError
+    
+    executor = Executor(data_dir=data_dir)
+    try:
+        # Handshake / Login
+        role = None
+        users_exist = executor.db.get_engine("_system.users").count() > 0
+        
+        if users_exist and user:
+            password = getpass.getpass(f"Password for {user}: ")
+            try:
+                # Login locally to evaluate the password
+                res = executor.execute(f'login {user} password "{password}"\n', role=None)
+                role = res.get("_internal_login_role")
+                print(f"Logged in successfully as \033[92m{user}\033[0m.")
+            except SreeBaseError as e:
+                print(f"\033[91mAccess denied for user '{user}': {e}\033[0m")
+                sys.exit(1)
+        elif users_exist and not user:
+            print("\033[91mAuthentication required. Please run with -u/--user.\033[0m")
+            sys.exit(1)
+            
+        print(f"Connected to \033[94mSreeBase (Local Embedded)\033[0m at {data_dir}")
+        print("Type your query. Submit an empty line to execute.")
+        print("Type 'exit' or 'quit' or press Ctrl+D to exit.\n")
+        
+        while True:
+            query = _read_query()
+            if query is None:
+                break
+            if not query.strip():
+                continue
+                
+            try:
+                result = executor.execute(query, role=role)
+                if isinstance(result, dict) and "_internal_login_role" in result:
+                    role = result.pop("_internal_login_role")
+                    
+                _print_result({"status": "ok", "data": result}, query)
+            except SreeBaseError as e:
+                _print_result({"status": "error", "error": type(e).__name__, "message": str(e)})
+            except Exception as e:
+                _print_result({"status": "error", "error": "InternalServerError", "message": str(e)})
+                
+    except KeyboardInterrupt:
+        print("\nExiting.")
+    finally:
+        executor.close()
 
 
 def main():
