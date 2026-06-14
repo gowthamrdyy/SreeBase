@@ -2,6 +2,7 @@ site_name: SreeBase
 site_description: Learn SreeBase, a lightweight educational document database with a bracketless query language.
 site_author: "Gowtham Reddy"
 repo_url: "https://github.com/gowthamrdyy/sreebase"
+site_url: "https://gowthamrdyy.github.io/SreeBase/"
 
 theme:
   name: material
@@ -22,9 +23,7 @@ theme:
     text: Inter
     code: Fira Code
   features:
-    - navigation.sections
     - navigation.expand
-    - navigation.indexes
     - navigation.top
     - navigation.instant
     - toc.integrate
