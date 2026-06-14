@@ -4,69 +4,128 @@ hide:
   - toc
 ---
 
-<div style="text-align: center; margin-top: 4rem; margin-bottom: 4rem;">
-  <h1 style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; color: var(--md-primary-fg-color);">SreeBase</h1>
-  <p style="font-size: 1.5rem; color: var(--md-default-fg-color--light); max-width: 600px; margin: 0 auto 2rem auto;">
-    A lightning-fast, educational document database with a beautiful bracketless query language.
-  </p>
-  <a href="tutorials/index.md" class="md-button md-button--primary" style="font-size: 1.2rem; padding: 0.5rem 2rem;">Get Started</a>
-  <a href="faq.md" class="md-button" style="font-size: 1.2rem; padding: 0.5rem 2rem;">Read FAQ</a>
+<div class="sb-hero">
+  <div class="sb-eyebrow">Database Systems Engineering</div>
+  <h1>Master databases by building one.</h1>
+  <p>SreeBase is an educational, pure-Python document database with a bracketless query language. Learn how storage engines, custom parsers, and secondary indexes work under the hood without the enterprise bloat.</p>
+  <div class="sb-actions">
+    <a href="tutorials/installation.md" class="sb-button primary">Start Learning</a>
+    <a href="syntax.md" class="sb-button">View Syntax</a>
+  </div>
 </div>
 
-## Why SreeBase?
+<div class="sb-grid two">
 
-SreeBase is built from scratch in Python to demystify how databases actually work under the hood. It skips the bloated enterprise features in favor of pure, readable systems engineering.
-
-<div class="grid cards" markdown>
-
--   :material-code-brackets: **Bracketless Query Language**
-
-    ---
-
-    Forget `{}` and `;`. SreeBase uses an elegant, indentation-based parser inspired by Python.
-
--   :material-database-sync: **Bitcask Storage Engine**
-
-    ---
-
-    Writes are blindingly fast append-only logs. Reads are O(1) guaranteed via in-memory hash indexes.
-
--   :material-server-network: **TCP Server & Local Shell**
-
-    ---
-
-    Run a standalone server with Role-Based Access Control, or boot directly into a SQLite-style embedded local shell.
-
--   :material-language-python: **Native Python SDK**
-
-    ---
-
-    Integrate SreeBase directly into your Python apps with our secure, injection-protected `reddybase` driver.
-
-</div>
-
----
-
-## ⚡ A First Query
-
+<div class="sb-card">
+  <h3>Code as Data</h3>
+  <p>Forget brackets and semicolons. SreeBase uses an elegant indentation-based query language inspired by Python, making database interactions incredibly clean.</p>
+  <div class="sb-terminal">
 ```sql
 insert into employees
     name = "Anika"
-    department = "Engineering"
+    role = "Engineering"
     salary = 90000
 ```
+  </div>
+</div>
 
+<div class="sb-card">
+  <h3>Under the Hood</h3>
+  <p>Learn core concepts like append-only Bitcask storage engines, in-memory hash indexes, custom lexing/parsing, and binary TCP protocols.</p>
+  <div class="sb-terminal">
 ```sql
 get employees
-    department = "Engineering"
+    role = "Engineering"
     sort by salary desc
     limit 5
 ```
+  </div>
+</div>
 
-## 🗺️ Learning Path
+</div>
 
-1. **[Install SreeBase](tutorials/installation.md)**
-2. **[Create your first database](tutorials/first-database.md)**
-3. **[Learn the bracketless syntax](syntax.md)**
-4. **[Review the Future Roadmap](roadmap.md)**
+## Learning Tracks
 
+<div class="sb-grid two">
+
+<div class="sb-track">
+  <h2>1. Core Concepts</h2>
+  <ul class="sb-lesson-list">
+    <li>
+      <a href="tutorials/installation.md"><strong>Installation & Setup</strong></a>
+      <span>Get SreeBase running on your machine</span>
+    </li>
+    <li>
+      <a href="tutorials/first-database.md"><strong>Your First Database</strong></a>
+      <span>Create collections and insert records</span>
+    </li>
+    <li>
+      <a href="syntax.md"><strong>The Bracketless Syntax</strong></a>
+      <span>Master the indentation rules</span>
+    </li>
+    <li>
+      <a href="tutorials/concepts.md"><strong>How SreeBase Works</strong></a>
+      <span>Architecture and storage overview</span>
+    </li>
+  </ul>
+</div>
+
+<div class="sb-track">
+  <h2>2. Query Mastery</h2>
+  <ul class="sb-lesson-list">
+    <li>
+      <a href="tutorials/read.md"><strong>Reading Data</strong></a>
+      <span>Filters, sorting, and limits</span>
+    </li>
+    <li>
+      <a href="tutorials/update.md"><strong>Updating Records</strong></a>
+      <span>Modifying data safely</span>
+    </li>
+    <li>
+      <a href="tutorials/aggregations.md"><strong>Aggregations</strong></a>
+      <span>Sum, Count, Avg operators</span>
+    </li>
+    <li>
+      <a href="tutorials/indexes.md"><strong>Using Indexes</strong></a>
+      <span>O(1) lookups for fast queries</span>
+    </li>
+  </ul>
+</div>
+
+<div class="sb-track">
+  <h2>3. Build & Deploy</h2>
+  <ul class="sb-lesson-list">
+    <li>
+      <a href="api.md"><strong>Python SDK</strong></a>
+      <span>Integrate SreeBase into your apps</span>
+    </li>
+    <li>
+      <a href="tutorials/example-app.md"><strong>Example Project</strong></a>
+      <span>Build a full app with ReddyBase</span>
+    </li>
+    <li>
+      <a href="tutorials/security.md"><strong>Security & Admin</strong></a>
+      <span>Roles, users, and RBAC</span>
+    </li>
+  </ul>
+</div>
+
+<div class="sb-track">
+  <h2>4. Resources</h2>
+  <ul class="sb-lesson-list">
+    <li>
+      <a href="faq.md"><strong>FAQ & Common Pitfalls</strong></a>
+      <span>Indentation, blank lines, & modes</span>
+    </li>
+    <li>
+      <a href="roadmap.md"><strong>Future Roadmap</strong></a>
+      <span>Joins, transactions, and beyond</span>
+    </li>
+    <li>
+      <a href="tutorials/cheat-sheet.md"><strong>Cheat Sheet</strong></a>
+      <span>Quick syntax reference</span>
+    </li>
+  </ul>
+</div>
+
+</div>

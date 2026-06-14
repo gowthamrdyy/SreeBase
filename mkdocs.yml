@@ -30,6 +30,8 @@ theme:
     - content.code.copy
     - search.suggest
     - search.highlight
+  icon:
+    logo: material/database
 
 nav:
   - Home: index.md
@@ -68,3 +70,6 @@ markdown_extensions:
   - pymdownx.superfences
   - admonition
   - pymdownx.details
+
+extra_css:
+  - stylesheets/extra.css
