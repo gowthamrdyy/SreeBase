@@ -4,9 +4,6 @@
 const sidebars = {
   tutorialSidebar: [
     'index',
-    'faq',
-    'roadmap',
-    'about',
     {
       type: 'category',
       label: 'Get Started',
@@ -50,11 +47,14 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Reference',
+      label: 'Resources',
       items: [
+        'faq',
+        'roadmap',
         'tutorials/cheat-sheet',
       ],
     },
+    'about',
   ],
 };
 

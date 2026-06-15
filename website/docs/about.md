@@ -1,9 +1,16 @@
 # About the Author
 
-!!! info "Hello World! 👋"
-    Welcome to SreeBase, an educational database engineering project built from the ground up!
+:::info Hello World! 👋
+Welcome to SreeBase, an educational database engineering project built from the ground up!
+:::
 
-My name is **Gowtham Reddy**, and I am a software engineer passionate about systems design, backend architecture, and understanding how things work under the hood.
+My name is **Gowtham Sree Charan Reddy**, and I am an AI Engineer, Software Developer, and product builder. I am currently pursuing my Bachelor of Engineering in Computer Science and Engineering (with a specialization in Artificial Intelligence and Machine Learning) at the SRM Institute of Science and Technology (SRMIST).
+
+My technical expertise and core interests revolve around:
+* **Machine Learning Systems & AI**
+* **Data Structures and Algorithms (DSA)**
+* **Scalable Database Design & Backend Architecture**
+* **Python Programming**
 
 ## Why I Built SreeBase
 
@@ -17,9 +24,11 @@ I built SreeBase to **demystify that magic**. I wanted to understand:
 
 ## Connect With Me
 
-If you are interested in backend engineering, database internals, or just want to chat about Python, feel free to connect!
+If you are interested in AI, backend engineering, database internals, or just want to chat about Python, feel free to connect!
 
-* 🐙 **GitHub:** [gowthamrdyy](https://github.com/gowthamrdyy)
+* 👔 **LinkedIn:** [Gowtham Sree Charan Reddy](https://www.linkedin.com/in/gowthamrdyy)
+* 🐙 **GitHub:** [@gowthamrdyy](https://github.com/gowthamrdyy)
+* 📺 **YouTube:** Tech & Programming Content
 * 💼 **Project Repo:** [SreeBase](https://github.com/gowthamrdyy/SreeBase)
 
 ---
