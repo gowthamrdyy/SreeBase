@@ -6,7 +6,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'SreeBase',
   tagline: 'Master databases by building one.',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
 
   url: 'https://gowthamrdyy.github.io',
   baseUrl: '/SreeBase/',
@@ -50,6 +50,10 @@ const config = {
       },
       navbar: {
         title: 'SreeBase',
+        logo: {
+          alt: 'SreeBase Logo',
+          src: 'img/logo.png',
+        },
         items: [
           {
             href: 'https://github.com/gowthamrdyy/SreeBase',
