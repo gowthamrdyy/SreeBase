@@ -294,3 +294,8 @@
     border-right: 0;
   }
 }
+
+/* Hide breadcrumbs on homepage */
+.docs-doc-id-index .theme-doc-breadcrumbs {
+  display: none !important;
+}
