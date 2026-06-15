@@ -23,7 +23,6 @@ theme:
     text: Inter
     code: Fira Code
   features:
-    - navigation.expand
     - navigation.top
     - navigation.instant
     - toc.integrate
