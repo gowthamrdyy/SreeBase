@@ -2,10 +2,18 @@
 
 This page shows how to run SreeBase locally.
 
-## Option 1: Install With Pip
+## Option 1: Install from GitHub
 
+Since SreeBase is actively in development and not yet published to PyPI, you can install the CLI globally directly from the GitHub repository.
+
+**Using `pipx` (Recommended):**
 ```bash
-pip install sreebase
+pipx install git+https://github.com/gowthamrdyy/SreeBase.git
+```
+
+**Using `pip`:**
+```bash
+pip install git+https://github.com/gowthamrdyy/SreeBase.git
 ```
 
 Start the server:

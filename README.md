@@ -26,11 +26,14 @@ SreeBase was built to explore database internals and query language parsing usin
 
 ## ⚡ Quick Start
 
-SreeBase is packaged natively. You can install it globally on your machine using `pip`.
+SreeBase is actively in development. You can install it globally on your machine directly from GitHub using `pipx` (recommended) or `pip`.
 
 ```bash
-# Install globally
-pip install sreebase
+# Install globally using pipx
+pipx install git+https://github.com/gowthamrdyy/SreeBase.git
+
+# OR using standard pip
+pip install git+https://github.com/gowthamrdyy/SreeBase.git
 
 # Start the SreeBase TCP server in the background
 sreebase serve &
