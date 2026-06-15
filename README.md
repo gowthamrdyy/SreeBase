@@ -1,4 +1,5 @@
 <p align="center">
+  <img src="website/static/img/logo.png" alt="SreeBase Logo" width="200" />
   <h1 align="center">SreeBase</h1>
   <p align="center"><strong>A Lightweight, Educational Bracketless NoSQL Database</strong></p>
   <p align="center">

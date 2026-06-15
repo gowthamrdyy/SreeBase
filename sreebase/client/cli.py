@@ -176,6 +176,14 @@ def repl(host: str, port: int, user: str = None):
             print(f"Failed to login: {e}")
             sys.exit(1)
 
+    BANNER = r"""
+\033[92m  ____                 ____                 
+ / ___| _ __ ___  ___ | __ )  __ _ ___  ___ 
+ \___ \| '__/ _ \/ _ \|  _ \ / _` / __|/ _ \
+  ___) | | |  __/  __/| |_) | (_| \__ \  __/
+ |____/|_|  \___|\___||____/ \__,_|___/\___|\033[0m
+"""
+    print(BANNER)
     print(f"Connected to \033[94mSreeBase\033[0m at {host}:{port}")
     print("Type your query. Submit an empty line to execute.")
     print("Type 'exit' or 'quit' or press Ctrl+D to exit.\n")
@@ -236,6 +244,14 @@ def local_repl(data_dir: str, user: str = None):
             print("\033[91mAuthentication required. Please run with -u/--user.\033[0m")
             sys.exit(1)
             
+        BANNER = r"""
+\033[92m  ____                 ____                 
+ / ___| _ __ ___  ___ | __ )  __ _ ___  ___ 
+ \___ \| '__/ _ \/ _ \|  _ \ / _` / __|/ _ \
+  ___) | | |  __/  __/| |_) | (_| \__ \  __/
+ |____/|_|  \___|\___||____/ \__,_|___/\___|\033[0m
+"""
+        print(BANNER)
         print(f"Connected to \033[94mSreeBase (Local Embedded)\033[0m at {data_dir}")
         print("Type your query. Submit an empty line to execute.")
         print("Type 'exit' or 'quit' or press Ctrl+D to exit.\n")

@@ -158,6 +158,14 @@ def run_server(host: str = "127.0.0.1", port: int = 6969, data_dir: str = "data"
     
     try:
         with ThreadedTCPServer(server_address, SreeBaseRequestHandler) as server:
+            BANNER = r"""
+\033[92m  ____                 ____                 
+ / ___| _ __ ___  ___ | __ )  __ _ ___  ___ 
+ \___ \| '__/ _ \/ _ \|  _ \ / _` / __|/ _ \
+  ___) | | |  __/  __/| |_) | (_| \__ \  __/
+ |____/|_|  \___|\___||____/ \__,_|___/\___|\033[0m
+"""
+            print(BANNER)
             logger.info(f"SreeBase server listening on tcp://{host}:{port}")
             logger.info("Press Ctrl+C to stop.")
             server.serve_forever()
